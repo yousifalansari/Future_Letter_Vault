@@ -1,8 +1,10 @@
+
 "use client";
 
+import { deleteLetter } from "./actions";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LockKeyhole, MailOpen, Clock } from "lucide-react";
+import { LockKeyhole, MailOpen, Clock, Trash2 } from "lucide-react";
 
 type Letter = {
   id: string;
@@ -127,18 +129,47 @@ export default function LetterTimeline({
                 </div>
               </div>
 
-              {unlocked ? (
-                <Link
-                  href={`/letters/${letter.id}`}
-                  className="shrink-0 rounded-lg bg-indigo-600 px-5 py-3 text-center font-medium text-white transition hover:bg-indigo-500"
+              <div className="flex flex-wrap items-center gap-3">
+                {unlocked ? (
+                  <Link
+                    href={`/letters/${letter.id}`}
+                    className="shrink-0 rounded-lg bg-indigo-600 px-5 py-3 text-center font-medium text-white transition hover:bg-indigo-500"
+                  >
+                    Open letter
+                  </Link>
+                ) : (
+                  <span className="shrink-0 rounded-lg border border-zinc-700 px-5 py-3 text-center text-sm text-zinc-500">
+                    Locked
+                  </span>
+                )}
+
+                <form
+                  action={deleteLetter}
+                  onSubmit={(event) => {
+                    const confirmed = window.confirm(
+                      "Are you sure you want to permanently delete this letter?"
+                    );
+
+                    if (!confirmed) {
+                      event.preventDefault();
+                    }
+                  }}
                 >
-                  Open letter
-                </Link>
-              ) : (
-                <span className="shrink-0 rounded-lg border border-zinc-700 px-5 py-3 text-center text-sm text-zinc-500">
-                  Locked
-                </span>
-              )}
+                  <input
+                    type="hidden"
+                    name="letterId"
+                    value={letter.id}
+                  />
+
+                  <button
+                    type="submit"
+                    className="flex shrink-0 items-center gap-2 rounded-lg border border-red-900 px-4 py-3 text-sm font-medium text-red-400 transition hover:bg-red-950"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </button>
+                </form>
+              </div>
             </div>
           </article>
         );

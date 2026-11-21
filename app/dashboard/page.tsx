@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -6,7 +7,11 @@ import LetterTimeline from "./LetterTimeline";
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ created?: string }>;
+  searchParams: Promise<{
+    created?: string;
+    deleted?: string;
+    deleteError?: string;
+  }>;
 }) {
   const supabase = await createClient();
 
@@ -54,6 +59,18 @@ export default async function DashboardPage({
         {params.created === "1" && (
           <div className="mb-6 rounded-lg border border-emerald-800 bg-emerald-950/40 p-4 text-emerald-300">
             Your future letter has been created successfully.
+          </div>
+        )}
+
+        {params.deleted === "1" && (
+          <div className="mb-6 rounded-lg border border-emerald-800 bg-emerald-950/40 p-4 text-emerald-300">
+            Letter deleted successfully.
+          </div>
+        )}
+
+        {params.deleteError === "1" && (
+          <div className="mb-6 rounded-lg border border-red-800 bg-red-950/40 p-4 text-red-300">
+            We couldn't delete that letter. Please try again.
           </div>
         )}
 
