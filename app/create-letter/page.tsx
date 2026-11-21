@@ -56,10 +56,7 @@ export default async function CreateLetterPage({
         )}
 
         <LetterForm />
-
-        <p className="mt-8 text-center text-xs text-zinc-500">
-          Powered by Codyza
-        </p>
+        
       </section>
     </main>
   );

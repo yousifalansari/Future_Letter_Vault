@@ -120,10 +120,7 @@ export default async function LetterPage({
             {letterContent.content}
           </div>
         </div>
-
-        <footer className="mt-8 text-center text-sm text-zinc-500">
-          Powered by Codyza
-        </footer>
+        
       </article>
     </main>
   );

@@ -7,6 +7,7 @@ export async function createLetter(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
   const unlockAtUtc = String(formData.get("unlockAtUtc") ?? "");
+  const requestId = String(formData.get("requestId") ?? "");
 
   if (
     !title ||
@@ -14,6 +15,14 @@ export async function createLetter(formData: FormData) {
     !content ||
     content.length > 10000
   ) {
+    redirect("/create-letter?error=invalid");
+  }
+
+  // Validate the idempotency key.
+  const uuidPattern =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+  if (!uuidPattern.test(requestId)) {
     redirect("/create-letter?error=invalid");
   }
 
@@ -38,37 +47,21 @@ export async function createLetter(formData: FormData) {
     redirect("/login");
   }
 
-  const { data: letter, error: letterError } = await supabase
-    .from("letters")
-    .insert({
-      user_id: user.id,
-      title,
-      unlock_at: unlockAt.toISOString(),
-    })
-    .select("id")
-    .single();
+  // The database function creates the letter and its content
+  // atomically, and safely handles duplicate request IDs.
+  const { data: letterId, error: createError } = await supabase.rpc(
+    "create_letter_once",
+    {
+      p_request_id: requestId,
+      p_title: title,
+      p_unlock_at: unlockAt.toISOString(),
+      p_content: content,
+    }
+  );
 
-  if (letterError || !letter) {
-    console.error("Letter metadata insert failed:", letterError);
+  if (createError || !letterId) {
+    console.error("Letter creation failed:", createError);
     redirect("/create-letter?error=save");
-  }
-
-  const { error: contentError } = await supabase
-    .from("letter_contents")
-    .insert({
-      letter_id: letter.id,
-      content,
-    });
-
-  if (contentError) {
-    console.error("Letter content insert failed:", contentError);
-
-    await supabase
-      .from("letters")
-      .delete()
-      .eq("id", letter.id);
-
-    redirect("/create-letter?error=content");
   }
 
   redirect("/dashboard?message=created");

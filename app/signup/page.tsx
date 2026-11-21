@@ -1,19 +1,33 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { signUp } from "@/app/auth/actions";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function SignupPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect("/dashboard");
+  }
+
   const params = await searchParams;
 
   let errorMessage = "";
 
   if (params.error === "invalid") {
-    errorMessage = "Enter a valid email and a password with at least 6 characters.";
+    errorMessage =
+      "Enter a valid email and a password with at least 6 characters.";
   } else if (params.error === "signup") {
-    errorMessage = "Could not create your account. The email may already be registered.";
+    errorMessage =
+      "Could not create your account. The email may already be registered.";
   }
 
   return (
@@ -24,6 +38,7 @@ export default async function SignupPage({
         </Link>
 
         <h1 className="mt-6 text-3xl font-bold">Create an account</h1>
+
         <p className="mt-2 text-zinc-400">
           Start writing letters to your future self.
         </p>
@@ -39,6 +54,7 @@ export default async function SignupPage({
             <label htmlFor="email" className="mb-2 block text-sm">
               Email
             </label>
+
             <input
               id="email"
               name="email"
@@ -53,6 +69,7 @@ export default async function SignupPage({
             <label htmlFor="password" className="mb-2 block text-sm">
               Password
             </label>
+
             <input
               id="password"
               name="password"
@@ -77,10 +94,6 @@ export default async function SignupPage({
           <Link href="/login" className="text-indigo-400 hover:text-indigo-300">
             Log in
           </Link>
-        </p>
-
-        <p className="mt-8 text-center text-xs text-zinc-500">
-          Powered by Codyza
         </p>
       </section>
     </main>

@@ -1,12 +1,43 @@
 "use client";
 
-import { useRef, type FormEvent } from "react";
+import {
+  useRef,
+  type FormEvent,
+  type ChangeEvent,
+} from "react";
+import { useFormStatus } from "react-dom";
 import { CalendarDays } from "lucide-react";
 import { createLetter } from "./actions";
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full rounded-lg bg-indigo-600 px-4 py-3 font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {pending ? "Creating your letter..." : "Create future letter"}
+    </button>
+  );
+}
 
 export default function LetterForm() {
   const dateInput = useRef<HTMLInputElement>(null);
   const utcInput = useRef<HTMLInputElement>(null);
+  const requestIdInput = useRef<HTMLInputElement>(null);
+  const requestIdRef = useRef<string>("");
+
+  function generateRequestId() {
+    const newId = crypto.randomUUID();
+
+    requestIdRef.current = newId;
+
+    if (requestIdInput.current) {
+      requestIdInput.current.value = newId;
+    }
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     const localDateTime = dateInput.current?.value;
@@ -27,14 +58,32 @@ export default function LetterForm() {
       return;
     }
 
-    // Convert the user's local date and time to UTC.
     utcInput.current.value = selectedDate.toISOString();
+
+    // Ensure the submission always has an idempotency key.
+    if (!requestIdRef.current) {
+      generateRequestId();
+    }
+  }
+
+  function handleFormChange(event: ChangeEvent<HTMLFormElement>) {
+    const target = event.target;
+
+    if (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement
+    ) {
+      // Create a fresh key for the changed form.
+      // Repeated submissions of this unchanged form reuse it.
+      generateRequestId();
+    }
   }
 
   return (
     <form
       action={createLetter}
       onSubmit={handleSubmit}
+      onChange={handleFormChange}
       className="mt-8 space-y-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-6"
     >
       <div>
@@ -104,7 +153,7 @@ export default function LetterForm() {
         </div>
 
         <p className="mt-2 text-sm text-zinc-500">
-          Choose a date and time using your device's calendar.
+          Choose a date and time using your device&apos;s calendar.
         </p>
 
         <input
@@ -112,14 +161,15 @@ export default function LetterForm() {
           type="hidden"
           name="unlockAtUtc"
         />
+
+        <input
+          ref={requestIdInput}
+          type="hidden"
+          name="requestId"
+        />
       </div>
 
-      <button
-        type="submit"
-        className="w-full rounded-lg bg-indigo-600 px-4 py-3 font-medium text-white transition hover:bg-indigo-500"
-      >
-        Create future letter
-      </button>
+      <SubmitButton />
     </form>
   );
 }

@@ -81,10 +81,7 @@ export default async function DashboardPage({
         ) : (
           <LetterTimeline letters={letters ?? []} />
         )}
-
-        <footer className="mt-16 border-t border-zinc-800 pt-6 text-center text-sm text-zinc-500">
-          Powered by Codyza
-        </footer>
+        
       </div>
     </main>
   );

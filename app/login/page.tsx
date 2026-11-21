@@ -1,11 +1,23 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { logIn } from "@/app/auth/actions";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string; message?: string }>;
 }) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect("/dashboard");
+  }
+
   const params = await searchParams;
 
   let errorMessage = "";
@@ -18,7 +30,8 @@ export default async function LoginPage({
   }
 
   if (params.message === "check-email") {
-    successMessage = "Account created. Check your email to confirm your address, then log in.";
+    successMessage =
+      "Account created. Check your email to confirm your address, then log in.";
   }
 
   return (
@@ -29,6 +42,7 @@ export default async function LoginPage({
         </Link>
 
         <h1 className="mt-6 text-3xl font-bold">Welcome back</h1>
+
         <p className="mt-2 text-zinc-400">
           Log in to visit your letter vault.
         </p>
@@ -50,6 +64,7 @@ export default async function LoginPage({
             <label htmlFor="email" className="mb-2 block text-sm">
               Email
             </label>
+
             <input
               id="email"
               name="email"
@@ -64,6 +79,7 @@ export default async function LoginPage({
             <label htmlFor="password" className="mb-2 block text-sm">
               Password
             </label>
+
             <input
               id="password"
               name="password"
@@ -87,10 +103,6 @@ export default async function LoginPage({
           <Link href="/signup" className="text-indigo-400 hover:text-indigo-300">
             Create an account
           </Link>
-        </p>
-
-        <p className="mt-8 text-center text-xs text-zinc-500">
-          Powered by Codyza
         </p>
       </section>
     </main>
