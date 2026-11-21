@@ -3,9 +3,14 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { logOut } from "@/app/auth/actions";
 
-export default async function DashboardPage() {
-  const supabase = await createClient();
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ message?: string }>;
+}) {
+  const params = await searchParams;
 
+  const supabase = await createClient();
   const {
     data: { user },
     error,
@@ -40,14 +45,28 @@ export default async function DashboardPage() {
           <h1 className="mt-2 text-4xl font-bold">Welcome back</h1>
           <p className="mt-3 text-zinc-400">{email}</p>
 
+          {params.message === "created" && (
+            <p className="mt-6 rounded-lg bg-emerald-950 p-4 text-sm text-emerald-200">
+              Your future letter has been saved!
+            </p>
+          )}
+
           <div className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-900 p-8">
-            <h2 className="text-xl font-semibold">Your letters</h2>
-            <p className="mt-2 text-zinc-400">
-              Your future letters will appear here.
-            </p>
-            <p className="mt-6 text-sm text-zinc-500">
-              Letter creation is coming in the next feature.
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-semibold">Your letters</h2>
+                <p className="mt-2 text-zinc-400">
+                  Your future letters will appear here.
+                </p>
+              </div>
+
+              <Link
+                href="/create-letter"
+                className="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-medium hover:bg-indigo-500"
+              >
+                + Write a letter
+              </Link>
+            </div>
           </div>
         </section>
 
